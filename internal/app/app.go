@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/smthjapanese/avito_pvz/internal/repository"
 	"net"
 	"net/http"
 
@@ -24,6 +25,7 @@ type App struct {
 	logger        logger.Logger
 	metrics       *metrics.Metrics
 	db            *database.Database
+	repositories  *repository.Repositories
 }
 
 func NewApp(cfg *config.Config) (*App, error) {
@@ -63,6 +65,8 @@ func NewApp(cfg *config.Config) (*App, error) {
 		Handler: metricsRouter,
 	}
 
+	repos := repository.NewRepositories(db)
+
 	return &App{
 		cfg:           cfg,
 		httpServer:    httpServer,
@@ -71,6 +75,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 		logger:        l,
 		metrics:       m,
 		db:            db,
+		repositories:  repos,
 	}, nil
 }
 
