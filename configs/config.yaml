@@ -1,0 +1,21 @@
+server:
+  http_port: 8080
+  grpc_port: 3000
+  metrics_port: 9000
+  read_timeout: 10s
+  write_timeout: 10s
+
+database:
+  host: postgres
+  port: 5432
+  user: postgres
+  password: postgres
+  dbname: pvz_service
+  sslmode: disable
+
+auth:
+  jwt_secret: your-secret-key
+  jwt_expiration: 24h
+
+log:
+  level: debug
