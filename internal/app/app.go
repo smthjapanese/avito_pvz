@@ -3,7 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/smthjapanese/avito_pvz/internal/pkg/jwt"
 	"github.com/smthjapanese/avito_pvz/internal/repository"
+	"github.com/smthjapanese/avito_pvz/internal/usecase"
 	"net"
 	"net/http"
 
@@ -26,6 +28,8 @@ type App struct {
 	metrics       *metrics.Metrics
 	db            *database.Database
 	repositories  *repository.Repositories
+	useCases      *usecase.UseCases
+	tokenManager  *jwt.Manager
 }
 
 func NewApp(cfg *config.Config) (*App, error) {
@@ -65,7 +69,14 @@ func NewApp(cfg *config.Config) (*App, error) {
 		Handler: metricsRouter,
 	}
 
+	// Инициализация JWT менеджера
+	tokenManager := jwt.NewManager(cfg.Auth.JWTSecret, cfg.Auth.JWTExpiration)
+
+	// Инициализация репозиториев
 	repos := repository.NewRepositories(db)
+
+	// Инициализация use cases
+	useCases := usecase.NewUseCases(repos, tokenManager)
 
 	return &App{
 		cfg:           cfg,
@@ -76,6 +87,8 @@ func NewApp(cfg *config.Config) (*App, error) {
 		metrics:       m,
 		db:            db,
 		repositories:  repos,
+		useCases:      useCases,
+		tokenManager:  tokenManager,
 	}, nil
 }
 
