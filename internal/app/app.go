@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/smthjapanese/avito_pvz/internal/config"
+	"github.com/smthjapanese/avito_pvz/internal/delivery/http/handler"
 	"github.com/smthjapanese/avito_pvz/internal/pkg/database"
 	"github.com/smthjapanese/avito_pvz/internal/pkg/logger"
 	"github.com/smthjapanese/avito_pvz/internal/pkg/metrics"
@@ -30,6 +31,7 @@ type App struct {
 	repositories  *repository.Repositories
 	useCases      *usecase.UseCases
 	tokenManager  *jwt.Manager
+	httpHandler   *handler.Handler
 }
 
 func NewApp(cfg *config.Config) (*App, error) {
@@ -94,8 +96,21 @@ func NewApp(cfg *config.Config) (*App, error) {
 
 // Run запускает приложение
 func (a *App) Run() error {
-	// TODO: Инициализация репозиториев, use case, обработчиков
+	// Инициализация HTTP-сервера
+	router := gin.New()
 
+	// Middleware
+	router.Use(gin.Recovery())
+	router.Use(gin.Logger())
+
+	// Инициализация обработчиков
+	a.httpHandler = handler.NewHandler(a.useCases, a.logger, a.metrics)
+	a.httpHandler.Init(router)
+
+	// Установка роутера в HTTP-сервер
+	a.httpServer.Handler = router
+
+	// Запуск HTTP-сервера
 	go func() {
 		a.logger.Info(fmt.Sprintf("Starting HTTP server on port %s", a.cfg.Server.HTTPPort))
 		if err := a.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {

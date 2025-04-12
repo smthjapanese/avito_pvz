@@ -2,15 +2,20 @@ package metrics
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
+type MetricsInterface interface {
+	IncPVZCreated()
+	IncReceptionCreated()
+	IncProductAdded()
+	ObserveRequestDuration(method, endpoint string, duration float64)
+	IncRequestCount(method, endpoint, status string)
+}
+
 type Metrics struct {
-	// Технические метрики
 	RequestCount    *prometheus.CounterVec
 	RequestDuration *prometheus.HistogramVec
 
-	// Бизнес-метрики
 	PVZCreated       prometheus.Counter
 	ReceptionCreated prometheus.Counter
 	ProductAdded     prometheus.Counter
@@ -18,14 +23,14 @@ type Metrics struct {
 
 func NewMetrics() *Metrics {
 	return &Metrics{
-		RequestCount: promauto.NewCounterVec(
+		RequestCount: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "http_requests_total",
 				Help: "Total number of HTTP requests",
 			},
 			[]string{"method", "endpoint", "status"},
 		),
-		RequestDuration: promauto.NewHistogramVec(
+		RequestDuration: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
 				Name:    "http_request_duration_seconds",
 				Help:    "Duration of HTTP requests in seconds",
@@ -33,23 +38,43 @@ func NewMetrics() *Metrics {
 			},
 			[]string{"method", "endpoint"},
 		),
-		PVZCreated: promauto.NewCounter(
+		PVZCreated: prometheus.NewCounter(
 			prometheus.CounterOpts{
 				Name: "pvz_created_total",
 				Help: "Total number of created PVZs",
 			},
 		),
-		ReceptionCreated: promauto.NewCounter(
+		ReceptionCreated: prometheus.NewCounter(
 			prometheus.CounterOpts{
 				Name: "reception_created_total",
 				Help: "Total number of created receptions",
 			},
 		),
-		ProductAdded: promauto.NewCounter(
+		ProductAdded: prometheus.NewCounter(
 			prometheus.CounterOpts{
 				Name: "product_added_total",
 				Help: "Total number of added products",
 			},
 		),
 	}
+}
+
+func (m *Metrics) IncPVZCreated() {
+	m.PVZCreated.Inc()
+}
+
+func (m *Metrics) IncReceptionCreated() {
+	m.ReceptionCreated.Inc()
+}
+
+func (m *Metrics) IncProductAdded() {
+	m.ProductAdded.Inc()
+}
+
+func (m *Metrics) ObserveRequestDuration(method, endpoint string, duration float64) {
+	m.RequestDuration.WithLabelValues(method, endpoint).Observe(duration)
+}
+
+func (m *Metrics) IncRequestCount(method, endpoint, status string) {
+	m.RequestCount.WithLabelValues(method, endpoint, status).Inc()
 }
