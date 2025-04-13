@@ -21,7 +21,6 @@ import (
 )
 
 func TestReceptionHandler_Create(t *testing.T) {
-	// Инициализация
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -30,14 +29,12 @@ func TestReceptionHandler_Create(t *testing.T) {
 	mockMetrics := metrics.NewMetrics()
 	handler := NewReceptionHandler(mockReceptionUseCase, mockLogger, mockMetrics)
 
-	// Подготовка запроса
 	pvzID := uuid.New()
 	req := createReceptionRequest{
 		PVZID: pvzID,
 	}
 	reqBody, _ := json.Marshal(req)
 
-	// Настройка mock
 	reception := &models.Reception{
 		ID:        uuid.New(),
 		DateTime:  time.Now(),
@@ -47,7 +44,6 @@ func TestReceptionHandler_Create(t *testing.T) {
 	}
 	mockReceptionUseCase.EXPECT().Create(gomock.Any(), pvzID).Return(reception, nil)
 
-	// Создание тестового запроса
 	w := httptest.NewRecorder()
 	c, r := gin.CreateTestContext(w)
 	r.POST("/receptions", handler.Create)
@@ -55,10 +51,8 @@ func TestReceptionHandler_Create(t *testing.T) {
 	c.Request, _ = http.NewRequest(http.MethodPost, "/receptions", bytes.NewBuffer(reqBody))
 	c.Request.Header.Set("Content-Type", "application/json")
 
-	// Выполнение запроса
 	r.ServeHTTP(w, c.Request)
 
-	// Проверка результатов
 	assert.Equal(t, http.StatusCreated, w.Code)
 
 	var response models.Reception
@@ -70,7 +64,6 @@ func TestReceptionHandler_Create(t *testing.T) {
 }
 
 func TestReceptionHandler_Create_PVZNotFound(t *testing.T) {
-	// Инициализация
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -79,17 +72,14 @@ func TestReceptionHandler_Create_PVZNotFound(t *testing.T) {
 	mockMetrics := metrics.NewMetrics()
 	handler := NewReceptionHandler(mockReceptionUseCase, mockLogger, mockMetrics)
 
-	// Подготовка запроса
 	pvzID := uuid.New()
 	req := createReceptionRequest{
 		PVZID: pvzID,
 	}
 	reqBody, _ := json.Marshal(req)
 
-	// Настройка mock для случая, когда ПВЗ не найден
 	mockReceptionUseCase.EXPECT().Create(gomock.Any(), pvzID).Return(nil, errors.ErrPVZNotFound)
 
-	// Создание тестового запроса
 	w := httptest.NewRecorder()
 	c, r := gin.CreateTestContext(w)
 	r.POST("/receptions", handler.Create)
@@ -97,16 +87,13 @@ func TestReceptionHandler_Create_PVZNotFound(t *testing.T) {
 	c.Request, _ = http.NewRequest(http.MethodPost, "/receptions", bytes.NewBuffer(reqBody))
 	c.Request.Header.Set("Content-Type", "application/json")
 
-	// Выполнение запроса
 	r.ServeHTTP(w, c.Request)
 
-	// Проверка результатов
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Contains(t, w.Body.String(), "pvz not found")
 }
 
 func TestReceptionHandler_Create_OpenReceptionExists(t *testing.T) {
-	// Инициализация
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -115,17 +102,14 @@ func TestReceptionHandler_Create_OpenReceptionExists(t *testing.T) {
 	mockMetrics := metrics.NewMetrics()
 	handler := NewReceptionHandler(mockReceptionUseCase, mockLogger, mockMetrics)
 
-	// Подготовка запроса
 	pvzID := uuid.New()
 	req := createReceptionRequest{
 		PVZID: pvzID,
 	}
 	reqBody, _ := json.Marshal(req)
 
-	// Настройка mock для случая, когда уже есть открытая приемка
 	mockReceptionUseCase.EXPECT().Create(gomock.Any(), pvzID).Return(nil, errors.ErrOpenReceptionExists)
 
-	// Создание тестового запроса
 	w := httptest.NewRecorder()
 	c, r := gin.CreateTestContext(w)
 	r.POST("/receptions", handler.Create)
@@ -133,16 +117,13 @@ func TestReceptionHandler_Create_OpenReceptionExists(t *testing.T) {
 	c.Request, _ = http.NewRequest(http.MethodPost, "/receptions", bytes.NewBuffer(reqBody))
 	c.Request.Header.Set("Content-Type", "application/json")
 
-	// Выполнение запроса
 	r.ServeHTTP(w, c.Request)
 
-	// Проверка результатов
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Contains(t, w.Body.String(), "open reception already exists")
 }
 
 func TestReceptionHandler_CloseLastReception(t *testing.T) {
-	// Инициализация
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -151,10 +132,8 @@ func TestReceptionHandler_CloseLastReception(t *testing.T) {
 	mockMetrics := metrics.NewMetrics()
 	handler := NewReceptionHandler(mockReceptionUseCase, mockLogger, mockMetrics)
 
-	// Подготовка параметров запроса
 	pvzID := uuid.New()
 
-	// Настройка mock
 	reception := &models.Reception{
 		ID:        uuid.New(),
 		DateTime:  time.Now(),
@@ -164,7 +143,6 @@ func TestReceptionHandler_CloseLastReception(t *testing.T) {
 	}
 	mockReceptionUseCase.EXPECT().CloseLastReception(gomock.Any(), pvzID).Return(reception, nil)
 
-	// Создание тестового запроса
 	w := httptest.NewRecorder()
 	c, r := gin.CreateTestContext(w)
 	r.POST("/pvz/:pvzId/close_last_reception", handler.CloseLastReception)
@@ -174,10 +152,8 @@ func TestReceptionHandler_CloseLastReception(t *testing.T) {
 	}
 	c.Request, _ = http.NewRequest(http.MethodPost, "/pvz/"+pvzID.String()+"/close_last_reception", nil)
 
-	// Выполнение запроса
 	r.ServeHTTP(w, c.Request)
 
-	// Проверка результатов
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var response models.Reception
@@ -188,7 +164,6 @@ func TestReceptionHandler_CloseLastReception(t *testing.T) {
 }
 
 func TestReceptionHandler_CloseLastReception_InvalidID(t *testing.T) {
-	// Инициализация
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -197,7 +172,6 @@ func TestReceptionHandler_CloseLastReception_InvalidID(t *testing.T) {
 	mockMetrics := metrics.NewMetrics()
 	handler := NewReceptionHandler(mockReceptionUseCase, mockLogger, mockMetrics)
 
-	// Создание тестового запроса с некорректным ID
 	w := httptest.NewRecorder()
 	c, r := gin.CreateTestContext(w)
 	r.POST("/pvz/:pvzId/close_last_reception", handler.CloseLastReception)
@@ -207,16 +181,13 @@ func TestReceptionHandler_CloseLastReception_InvalidID(t *testing.T) {
 	}
 	c.Request, _ = http.NewRequest(http.MethodPost, "/pvz/invalid-uuid/close_last_reception", nil)
 
-	// Выполнение запроса
 	r.ServeHTTP(w, c.Request)
 
-	// Проверка результатов
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Contains(t, w.Body.String(), "invalid pvz id")
 }
 
 func TestReceptionHandler_CloseLastReception_NoOpenReception(t *testing.T) {
-	// Инициализация
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockReceptionUseCase := mock.NewMockReceptionUseCase(ctrl)
@@ -224,14 +195,10 @@ func TestReceptionHandler_CloseLastReception_NoOpenReception(t *testing.T) {
 	mockMetrics := metrics.NewMockMetrics() // Используем мок метрик
 	handler := NewReceptionHandler(mockReceptionUseCase, mockLogger, mockMetrics)
 
-	// Подготовка параметров запроса
 	pvzID := uuid.New()
 
-	// Настройка mock для случая, когда нет открытой приемки
-	// Используем ошибку, которая будет обрабатываться как "pvz not found"
 	mockReceptionUseCase.EXPECT().CloseLastReception(gomock.Any(), pvzID).Return(nil, errors.ErrPVZNotFound)
 
-	// Создание тестового запроса
 	w := httptest.NewRecorder()
 	c, r := gin.CreateTestContext(w)
 	r.POST("/pvz/:pvzId/close_last_reception", handler.CloseLastReception)
@@ -240,11 +207,8 @@ func TestReceptionHandler_CloseLastReception_NoOpenReception(t *testing.T) {
 	}
 	c.Request, _ = http.NewRequest(http.MethodPost, "/pvz/"+pvzID.String()+"/close_last_reception", nil)
 
-	// Выполнение запроса
 	r.ServeHTTP(w, c.Request)
 
-	// Проверка результатов
 	assert.Equal(t, http.StatusBadRequest, w.Code)
-	// Проверяем сообщение, которое фактически возвращает обработчик
 	assert.Contains(t, w.Body.String(), "pvz not found")
 }

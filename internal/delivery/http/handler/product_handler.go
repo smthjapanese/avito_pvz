@@ -20,7 +20,6 @@ type ProductHandler struct {
 	metrics        metrics.MetricsInterface
 }
 
-// NewProductHandler создает новый экземпляр ProductHandler
 func NewProductHandler(productUseCase usecase.ProductUseCase, logger logger.Logger, metrics metrics.MetricsInterface) *ProductHandler {
 	return &ProductHandler{
 		productUseCase: productUseCase,
@@ -29,13 +28,11 @@ func NewProductHandler(productUseCase usecase.ProductUseCase, logger logger.Logg
 	}
 }
 
-// createRequest представляет запрос на создание товара
 type createProductRequest struct {
 	Type  models.ProductType `json:"type" binding:"required"`
 	PVZID uuid.UUID          `json:"pvzId" binding:"required"`
 }
 
-// Create обрабатывает запрос на создание товара
 func (h *ProductHandler) Create(c *gin.Context) {
 	var req createProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -62,13 +59,11 @@ func (h *ProductHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// Увеличиваем метрику добавленных товаров
 	h.metrics.IncProductAdded()
 
 	c.JSON(http.StatusCreated, product)
 }
 
-// DeleteLastFromReception обрабатывает запрос на удаление последнего товара из приемки
 func (h *ProductHandler) DeleteLastFromReception(c *gin.Context) {
 	pvzIDStr := c.Param("pvzId")
 	pvzID, err := uuid.Parse(pvzIDStr)

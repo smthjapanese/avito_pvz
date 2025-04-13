@@ -3,9 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/smthjapanese/avito_pvz/internal/pkg/jwt"
-	"github.com/smthjapanese/avito_pvz/internal/repository"
-	"github.com/smthjapanese/avito_pvz/internal/usecase"
 	"net"
 	"net/http"
 
@@ -15,9 +12,13 @@ import (
 
 	"github.com/smthjapanese/avito_pvz/internal/config"
 	"github.com/smthjapanese/avito_pvz/internal/delivery/http/handler"
+	"github.com/smthjapanese/avito_pvz/internal/domain/usecase"
 	"github.com/smthjapanese/avito_pvz/internal/pkg/database"
+	"github.com/smthjapanese/avito_pvz/internal/pkg/jwt"
 	"github.com/smthjapanese/avito_pvz/internal/pkg/logger"
 	"github.com/smthjapanese/avito_pvz/internal/pkg/metrics"
+	"github.com/smthjapanese/avito_pvz/internal/repository"
+	implUsecase "github.com/smthjapanese/avito_pvz/internal/usecase"
 )
 
 type App struct {
@@ -29,9 +30,14 @@ type App struct {
 	metrics       *metrics.Metrics
 	db            *database.Database
 	repositories  *repository.Repositories
-	useCases      *usecase.UseCases
+	useCases      *implUsecase.UseCases
 	tokenManager  *jwt.Manager
 	httpHandler   *handler.Handler
+}
+
+// GetPVZUseCase возвращает PVZ use case
+func (a *App) GetPVZUseCase() usecase.PVZUseCase {
+	return a.useCases.PVZ
 }
 
 func NewApp(cfg *config.Config) (*App, error) {
@@ -78,7 +84,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 	repos := repository.NewRepositories(db)
 
 	// Инициализация use cases
-	useCases := usecase.NewUseCases(repos, tokenManager)
+	useCases := implUsecase.NewUseCases(repos, tokenManager)
 
 	return &App{
 		cfg:           cfg,

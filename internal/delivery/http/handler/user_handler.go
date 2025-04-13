@@ -17,7 +17,6 @@ type UserHandler struct {
 	logger      logger.Logger
 }
 
-// NewUserHandler создает новый экземпляр UserHandler
 func NewUserHandler(userUseCase usecase.UserUseCase, logger logger.Logger) *UserHandler {
 	return &UserHandler{
 		userUseCase: userUseCase,
@@ -25,25 +24,21 @@ func NewUserHandler(userUseCase usecase.UserUseCase, logger logger.Logger) *User
 	}
 }
 
-// registerRequest представляет запрос на регистрацию
 type registerRequest struct {
 	Email    string          `json:"email" binding:"required,email"`
 	Password string          `json:"password" binding:"required,min=6"`
 	Role     models.UserRole `json:"role" binding:"required,oneof=employee moderator"`
 }
 
-// loginRequest представляет запрос на авторизацию
 type loginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
 }
 
-// dummyLoginRequest представляет запрос на тестовую авторизацию
 type dummyLoginRequest struct {
 	Role models.UserRole `json:"role" binding:"required,oneof=employee moderator"`
 }
 
-// Register обрабатывает запрос на регистрацию пользователя
 func (h *UserHandler) Register(c *gin.Context) {
 	var req registerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -65,7 +60,6 @@ func (h *UserHandler) Register(c *gin.Context) {
 	c.JSON(http.StatusCreated, user)
 }
 
-// Login обрабатывает запрос на авторизацию пользователя
 func (h *UserHandler) Login(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -87,7 +81,6 @@ func (h *UserHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, token)
 }
 
-// DummyLogin обрабатывает запрос на тестовую авторизацию
 func (h *UserHandler) DummyLogin(c *gin.Context) {
 	var req dummyLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

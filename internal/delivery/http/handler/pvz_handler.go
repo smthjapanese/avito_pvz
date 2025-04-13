@@ -20,7 +20,6 @@ type PVZHandler struct {
 	metrics    metrics.MetricsInterface
 }
 
-// NewPVZHandler создает новый экземпляр PVZHandler
 func NewPVZHandler(pvzUseCase usecase.PVZUseCase, logger logger.Logger, metrics metrics.MetricsInterface) *PVZHandler {
 	return &PVZHandler{
 		pvzUseCase: pvzUseCase,
@@ -29,12 +28,10 @@ func NewPVZHandler(pvzUseCase usecase.PVZUseCase, logger logger.Logger, metrics 
 	}
 }
 
-// createRequest представляет запрос на создание ПВЗ
 type createPVZRequest struct {
 	City models.City `json:"city" binding:"required"`
 }
 
-// Create обрабатывает запрос на создание ПВЗ
 func (h *PVZHandler) Create(c *gin.Context) {
 	var req createPVZRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -53,13 +50,11 @@ func (h *PVZHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// Увеличиваем метрику созданных ПВЗ
 	h.metrics.IncPVZCreated()
 
 	c.JSON(http.StatusCreated, pvz)
 }
 
-// listRequest представляет запрос на получение списка ПВЗ
 type listPVZRequest struct {
 	StartDate string `form:"startDate"`
 	EndDate   string `form:"endDate"`
@@ -67,7 +62,6 @@ type listPVZRequest struct {
 	Limit     int    `form:"limit,default=10" binding:"min=1,max=30"`
 }
 
-// List обрабатывает запрос на получение списка ПВЗ
 func (h *PVZHandler) List(c *gin.Context) {
 	var req listPVZRequest
 	if err := c.ShouldBindQuery(&req); err != nil {

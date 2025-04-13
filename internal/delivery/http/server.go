@@ -14,7 +14,6 @@ type Server struct {
 	router     *gin.Engine
 }
 
-// NewServer создает новый HTTP-сервер
 func NewServer(port string, handler http.Handler) *Server {
 	return &Server{
 		httpServer: &http.Server{
@@ -27,12 +26,10 @@ func NewServer(port string, handler http.Handler) *Server {
 	}
 }
 
-// Run запускает HTTP-сервер
 func (s *Server) Run() error {
 	return s.httpServer.ListenAndServe()
 }
 
-// Shutdown выполняет корректное завершение работы HTTP-сервера
 func (s *Server) Shutdown(ctx context.Context) error {
 	return s.httpServer.Shutdown(ctx)
 }

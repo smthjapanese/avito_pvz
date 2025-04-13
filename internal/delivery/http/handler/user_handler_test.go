@@ -20,7 +20,6 @@ import (
 )
 
 func TestUserHandler_Register(t *testing.T) {
-	// Инициализация
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -28,7 +27,6 @@ func TestUserHandler_Register(t *testing.T) {
 	mockLogger, _ := logger.NewLogger("debug")
 	handler := NewUserHandler(mockUserUseCase, mockLogger)
 
-	// Подготовка запроса
 	req := registerRequest{
 		Email:    "test@example.com",
 		Password: "password123",
@@ -36,7 +34,6 @@ func TestUserHandler_Register(t *testing.T) {
 	}
 	reqBody, _ := json.Marshal(req)
 
-	// Настройка mock
 	user := &models.User{
 		ID:    uuid.New(),
 		Email: req.Email,
@@ -44,7 +41,6 @@ func TestUserHandler_Register(t *testing.T) {
 	}
 	mockUserUseCase.EXPECT().Register(gomock.Any(), req.Email, req.Password, req.Role).Return(user, nil)
 
-	// Создание тестового запроса
 	w := httptest.NewRecorder()
 	c, r := gin.CreateTestContext(w)
 	r.POST("/register", handler.Register)
@@ -52,10 +48,8 @@ func TestUserHandler_Register(t *testing.T) {
 	c.Request, _ = http.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(reqBody))
 	c.Request.Header.Set("Content-Type", "application/json")
 
-	// Выполнение запроса
 	r.ServeHTTP(w, c.Request)
 
-	// Проверка результатов
 	assert.Equal(t, http.StatusCreated, w.Code)
 
 	var response models.User
@@ -66,7 +60,6 @@ func TestUserHandler_Register(t *testing.T) {
 }
 
 func TestUserHandler_Login(t *testing.T) {
-	// Инициализация
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -74,18 +67,15 @@ func TestUserHandler_Login(t *testing.T) {
 	mockLogger, _ := logger.NewLogger("debug")
 	handler := NewUserHandler(mockUserUseCase, mockLogger)
 
-	// Подготовка запроса
 	req := loginRequest{
 		Email:    "test@example.com",
 		Password: "password123",
 	}
 	reqBody, _ := json.Marshal(req)
 
-	// Настройка mock
 	token := "jwt-token"
 	mockUserUseCase.EXPECT().Login(gomock.Any(), req.Email, req.Password).Return(token, nil)
 
-	// Создание тестового запроса
 	w := httptest.NewRecorder()
 	c, r := gin.CreateTestContext(w)
 	r.POST("/login", handler.Login)
@@ -93,16 +83,13 @@ func TestUserHandler_Login(t *testing.T) {
 	c.Request, _ = http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(reqBody))
 	c.Request.Header.Set("Content-Type", "application/json")
 
-	// Выполнение запроса
 	r.ServeHTTP(w, c.Request)
 
-	// Проверка результатов
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), token)
 }
 
 func TestUserHandler_DummyLogin(t *testing.T) {
-	// Инициализация
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -110,17 +97,14 @@ func TestUserHandler_DummyLogin(t *testing.T) {
 	mockLogger, _ := logger.NewLogger("debug")
 	handler := NewUserHandler(mockUserUseCase, mockLogger)
 
-	// Подготовка запроса
 	req := dummyLoginRequest{
 		Role: models.EmployeeRole,
 	}
 	reqBody, _ := json.Marshal(req)
 
-	// Настройка mock
 	token := "dummy-jwt-token"
 	mockUserUseCase.EXPECT().DummyLogin(gomock.Any(), req.Role).Return(token, nil)
 
-	// Создание тестового запроса
 	w := httptest.NewRecorder()
 	c, r := gin.CreateTestContext(w)
 	r.POST("/dummyLogin", handler.DummyLogin)
@@ -128,16 +112,13 @@ func TestUserHandler_DummyLogin(t *testing.T) {
 	c.Request, _ = http.NewRequest(http.MethodPost, "/dummyLogin", bytes.NewBuffer(reqBody))
 	c.Request.Header.Set("Content-Type", "application/json")
 
-	// Выполнение запроса
 	r.ServeHTTP(w, c.Request)
 
-	// Проверка результатов
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), token)
 }
 
 func TestUserHandler_Register_ValidationError(t *testing.T) {
-	// Инициализация
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -145,15 +126,13 @@ func TestUserHandler_Register_ValidationError(t *testing.T) {
 	mockLogger, _ := logger.NewLogger("debug")
 	handler := NewUserHandler(mockUserUseCase, mockLogger)
 
-	// Подготовка запроса с некорректными данными
 	req := registerRequest{
-		Email:    "invalid-email", // Невалидный email
-		Password: "123",           // Слишком короткий пароль
-		Role:     "invalid-role",  // Некорректная роль
+		Email:    "invalid-email",
+		Password: "123",
+		Role:     "invalid-role",
 	}
 	reqBody, _ := json.Marshal(req)
 
-	// Создание тестового запроса
 	w := httptest.NewRecorder()
 	c, r := gin.CreateTestContext(w)
 	r.POST("/register", handler.Register)
@@ -161,16 +140,13 @@ func TestUserHandler_Register_ValidationError(t *testing.T) {
 	c.Request, _ = http.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(reqBody))
 	c.Request.Header.Set("Content-Type", "application/json")
 
-	// Выполнение запроса
 	r.ServeHTTP(w, c.Request)
 
-	// Проверка результатов
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Contains(t, w.Body.String(), "message")
 }
 
 func TestUserHandler_Register_UserAlreadyExists(t *testing.T) {
-	// Инициализация
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -178,7 +154,6 @@ func TestUserHandler_Register_UserAlreadyExists(t *testing.T) {
 	mockLogger, _ := logger.NewLogger("debug")
 	handler := NewUserHandler(mockUserUseCase, mockLogger)
 
-	// Подготовка запроса
 	req := registerRequest{
 		Email:    "test@example.com",
 		Password: "password123",
@@ -186,10 +161,8 @@ func TestUserHandler_Register_UserAlreadyExists(t *testing.T) {
 	}
 	reqBody, _ := json.Marshal(req)
 
-	// Настройка mock
 	mockUserUseCase.EXPECT().Register(gomock.Any(), req.Email, req.Password, req.Role).Return(nil, errors.ErrUserAlreadyExists)
 
-	// Создание тестового запроса
 	w := httptest.NewRecorder()
 	c, r := gin.CreateTestContext(w)
 	r.POST("/register", handler.Register)
@@ -197,16 +170,13 @@ func TestUserHandler_Register_UserAlreadyExists(t *testing.T) {
 	c.Request, _ = http.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(reqBody))
 	c.Request.Header.Set("Content-Type", "application/json")
 
-	// Выполнение запроса
 	r.ServeHTTP(w, c.Request)
 
-	// Проверка результатов
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Contains(t, w.Body.String(), "already exists")
 }
 
 func TestUserHandler_Login_InvalidCredentials(t *testing.T) {
-	// Инициализация
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -214,17 +184,14 @@ func TestUserHandler_Login_InvalidCredentials(t *testing.T) {
 	mockLogger, _ := logger.NewLogger("debug")
 	handler := NewUserHandler(mockUserUseCase, mockLogger)
 
-	// Подготовка запроса
 	req := loginRequest{
 		Email:    "test@example.com",
 		Password: "wrong-password",
 	}
 	reqBody, _ := json.Marshal(req)
 
-	// Настройка mock
 	mockUserUseCase.EXPECT().Login(gomock.Any(), req.Email, req.Password).Return("", errors.ErrInvalidCredentials)
 
-	// Создание тестового запроса
 	w := httptest.NewRecorder()
 	c, r := gin.CreateTestContext(w)
 	r.POST("/login", handler.Login)
@@ -232,10 +199,8 @@ func TestUserHandler_Login_InvalidCredentials(t *testing.T) {
 	c.Request, _ = http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(reqBody))
 	c.Request.Header.Set("Content-Type", "application/json")
 
-	// Выполнение запроса
 	r.ServeHTTP(w, c.Request)
 
-	// Проверка результатов
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 	assert.Contains(t, w.Body.String(), "invalid credentials")
 }

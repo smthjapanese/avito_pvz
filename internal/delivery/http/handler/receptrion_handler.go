@@ -19,7 +19,6 @@ type ReceptionHandler struct {
 	metrics          metrics.MetricsInterface
 }
 
-// NewReceptionHandler создает новый экземпляр ReceptionHandler
 func NewReceptionHandler(receptionUseCase usecase.ReceptionUseCase, logger logger.Logger, metrics metrics.MetricsInterface) *ReceptionHandler {
 	return &ReceptionHandler{
 		receptionUseCase: receptionUseCase,
@@ -28,12 +27,10 @@ func NewReceptionHandler(receptionUseCase usecase.ReceptionUseCase, logger logge
 	}
 }
 
-// createRequest представляет запрос на создание приемки
 type createReceptionRequest struct {
 	PVZID uuid.UUID `json:"pvzId" binding:"required"`
 }
 
-// Create обрабатывает запрос на создание приемки
 func (h *ReceptionHandler) Create(c *gin.Context) {
 	var req createReceptionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -56,13 +53,11 @@ func (h *ReceptionHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// Увеличиваем метрику созданных приемок
 	h.metrics.IncReceptionCreated()
 
 	c.JSON(http.StatusCreated, reception)
 }
 
-// CloseLastReception обрабатывает запрос на закрытие последней приемки
 func (h *ReceptionHandler) CloseLastReception(c *gin.Context) {
 	pvzIDStr := c.Param("pvzId")
 	pvzID, err := uuid.Parse(pvzIDStr)

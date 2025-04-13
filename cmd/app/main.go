@@ -30,26 +30,24 @@ func main() {
 		log.Fatalf("Failed to create app: %v", err)
 	}
 
-	// Запуск приложения в горутине
-	go func() {
-		if err := application.Run(); err != nil {
-			log.Fatalf("Failed to run app: %v", err)
-		}
-	}()
+	// Запуск приложения, включая все серверы
+	if err := application.Run(); err != nil {
+		log.Fatalf("Failed to run application: %v", err)
+	}
 
 	// Обработка сигналов для graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
-	log.Println("Shutting down server...")
+	log.Println("Shutting down servers...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := application.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+		log.Fatalf("HTTP server forced to shutdown: %v", err)
 	}
 
-	log.Println("Server exited properly")
+	log.Println("Servers exited properly")
 }
