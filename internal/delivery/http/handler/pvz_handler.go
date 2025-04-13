@@ -13,7 +13,6 @@ import (
 	"github.com/smthjapanese/avito_pvz/internal/pkg/logger"
 )
 
-// PVZHandler представляет обработчик для ПВЗ
 type PVZHandler struct {
 	pvzUseCase usecase.PVZUseCase
 	logger     logger.Logger

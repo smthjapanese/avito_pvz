@@ -36,7 +36,6 @@ CREATE TABLE products (
                           created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Индексы для повышения производительности
 CREATE INDEX idx_receptions_pvz_id ON receptions(pvz_id);
 CREATE INDEX idx_receptions_status ON receptions(status);
 CREATE INDEX idx_products_reception_id ON products(reception_id);

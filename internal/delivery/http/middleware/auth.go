@@ -25,7 +25,6 @@ func NewAuthMiddleware(userUseCase usecase.UserUseCase) *AuthMiddleware {
 	}
 }
 
-// Authenticate проверяет токен в заголовке и устанавливает пользователя в контекст
 func (m *AuthMiddleware) Authenticate() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader(authorizationHeader)

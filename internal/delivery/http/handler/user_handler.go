@@ -11,7 +11,6 @@ import (
 	"github.com/smthjapanese/avito_pvz/internal/pkg/logger"
 )
 
-// UserHandler представляет обработчик для пользователей
 type UserHandler struct {
 	userUseCase usecase.UserUseCase
 	logger      logger.Logger
@@ -26,7 +25,7 @@ func NewUserHandler(userUseCase usecase.UserUseCase, logger logger.Logger) *User
 
 type registerRequest struct {
 	Email    string          `json:"email" binding:"required,email"`
-	Password string          `json:"password" binding:"required,min=6"`
+	Password string          `json:"password" binding:"required,min=1"`
 	Role     models.UserRole `json:"role" binding:"required,oneof=employee moderator"`
 }
 

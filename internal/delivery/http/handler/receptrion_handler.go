@@ -12,7 +12,6 @@ import (
 	"github.com/smthjapanese/avito_pvz/internal/pkg/logger"
 )
 
-// ReceptionHandler представляет обработчик для приемок
 type ReceptionHandler struct {
 	receptionUseCase usecase.ReceptionUseCase
 	logger           logger.Logger

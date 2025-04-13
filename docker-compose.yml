@@ -1,4 +1,3 @@
-# Удалите атрибут `version` из docker-compose.yml и попробуйте следующее:
 
 services:
   app:

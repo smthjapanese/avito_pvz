@@ -13,7 +13,6 @@ import (
 	"github.com/smthjapanese/avito_pvz/internal/pkg/logger"
 )
 
-// ProductHandler представляет обработчик для товаров
 type ProductHandler struct {
 	productUseCase usecase.ProductUseCase
 	logger         logger.Logger

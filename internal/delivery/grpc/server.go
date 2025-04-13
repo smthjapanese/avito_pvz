@@ -12,13 +12,11 @@ import (
 	"github.com/smthjapanese/avito_pvz/internal/domain/usecase"
 )
 
-// Server представляет gRPC сервер
 type Server struct {
 	pbv1.UnimplementedPVZServiceServer
 	pvzUseCase usecase.PVZUseCase
 }
 
-// NewServer создает новый экземпляр gRPC сервера
 func NewServer(pvzUseCase usecase.PVZUseCase) *Server {
 	return &Server{pvzUseCase: pvzUseCase}
 }
@@ -42,7 +40,6 @@ func (s *Server) GetPVZList(ctx context.Context, req *pbv1.GetPVZListRequest) (*
 	return response, nil
 }
 
-// Start запускает gRPC сервер
 func Start(pvzUseCase usecase.PVZUseCase, port string) {
 	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
