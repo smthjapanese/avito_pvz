@@ -1,14 +1,15 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/smthjapanese/avito_pvz/internal/app"
 	"github.com/smthjapanese/avito_pvz/internal/config"
-	"github.com/smthjapanese/avito_pvz/internal/delivery/grpc"
 )
 
 func main() {
@@ -23,16 +24,15 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	// Создание и запуск приложения
+	// Создание приложения
 	application, err := app.NewApp(cfg)
 	if err != nil {
 		log.Fatalf("Failed to create app: %v", err)
 	}
 
-	// Создание и запуск gRPC-сервера
-	server := grpc.NewServer(application.GetPVZUseCase())
-	if err := server.Start("3000"); err != nil {
-		log.Fatalf("Failed to start gRPC server: %v", err)
+	// Запуск приложения (HTTP, gRPC и metrics серверы)
+	if err := application.Run(); err != nil {
+		log.Fatalf("Failed to run app: %v", err)
 	}
 
 	// Обработка сигналов для graceful shutdown
@@ -42,6 +42,14 @@ func main() {
 	<-quit
 	log.Println("Shutting down servers...")
 
-	server.Stop()
+	// Создаем контекст с таймаутом для graceful shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Останавливаем приложение
+	if err := application.Shutdown(ctx); err != nil {
+		log.Fatalf("Failed to shutdown app: %v", err)
+	}
+
 	log.Println("Server exited properly")
 }

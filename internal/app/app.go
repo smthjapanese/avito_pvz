@@ -9,7 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
+	pbv1 "github.com/smthjapanese/avito_pvz/github.com/avito_pvz/pvz/pvz_v1"
 	"github.com/smthjapanese/avito_pvz/internal/config"
 	"github.com/smthjapanese/avito_pvz/internal/delivery/http/handler"
 	"github.com/smthjapanese/avito_pvz/internal/domain/usecase"
@@ -56,9 +58,25 @@ func NewApp(cfg *config.Config) (*App, error) {
 		return nil, fmt.Errorf("failed to initialize database: %w", err)
 	}
 
-	// Создание HTTP сервера
+	// Инициализация JWT менеджера
+	tokenManager := jwt.NewManager(cfg.Auth.JWTSecret, cfg.Auth.JWTExpiration)
+
+	// Инициализация репозиториев
+	repos := repository.NewRepositories(db)
+
+	// Инициализация use cases
+	useCases := implUsecase.NewUseCases(repos, tokenManager)
+
+	// Инициализация HTTP-сервера
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
+	router.Use(gin.Recovery())
+	router.Use(gin.Logger())
+
+	// Инициализация обработчиков
+	httpHandler := handler.NewHandler(useCases, l, m)
+	httpHandler.Init(router)
+
 	httpServer := &http.Server{
 		Addr:         ":" + cfg.Server.HTTPPort,
 		Handler:      router,
@@ -68,6 +86,8 @@ func NewApp(cfg *config.Config) (*App, error) {
 
 	// Создание gRPC сервера
 	grpcServer := grpc.NewServer()
+	pvzServer := &PVZServer{pvzUseCase: useCases.PVZ}
+	pbv1.RegisterPVZServiceServer(grpcServer, pvzServer)
 
 	// Создание сервера для метрик
 	metricsRouter := gin.New()
@@ -76,15 +96,6 @@ func NewApp(cfg *config.Config) (*App, error) {
 		Addr:    ":" + cfg.Server.MetricsPort,
 		Handler: metricsRouter,
 	}
-
-	// Инициализация JWT менеджера
-	tokenManager := jwt.NewManager(cfg.Auth.JWTSecret, cfg.Auth.JWTExpiration)
-
-	// Инициализация репозиториев
-	repos := repository.NewRepositories(db)
-
-	// Инициализация use cases
-	useCases := implUsecase.NewUseCases(repos, tokenManager)
 
 	return &App{
 		cfg:           cfg,
@@ -97,25 +108,12 @@ func NewApp(cfg *config.Config) (*App, error) {
 		repositories:  repos,
 		useCases:      useCases,
 		tokenManager:  tokenManager,
+		httpHandler:   httpHandler,
 	}, nil
 }
 
 // Run запускает приложение
 func (a *App) Run() error {
-	// Инициализация HTTP-сервера
-	router := gin.New()
-
-	// Middleware
-	router.Use(gin.Recovery())
-	router.Use(gin.Logger())
-
-	// Инициализация обработчиков
-	a.httpHandler = handler.NewHandler(a.useCases, a.logger, a.metrics)
-	a.httpHandler.Init(router)
-
-	// Установка роутера в HTTP-сервер
-	a.httpServer.Handler = router
-
 	// Запуск HTTP-сервера
 	go func() {
 		a.logger.Info(fmt.Sprintf("Starting HTTP server on port %s", a.cfg.Server.HTTPPort))
@@ -124,6 +122,7 @@ func (a *App) Run() error {
 		}
 	}()
 
+	// Запуск gRPC сервера
 	go func() {
 		a.logger.Info(fmt.Sprintf("Starting gRPC server on port %s", a.cfg.Server.GRPCPort))
 		lis, err := net.Listen("tcp", ":"+a.cfg.Server.GRPCPort)
@@ -135,6 +134,7 @@ func (a *App) Run() error {
 		}
 	}()
 
+	// Запуск сервера метрик
 	go func() {
 		a.logger.Info(fmt.Sprintf("Starting metrics server on port %s", a.cfg.Server.MetricsPort))
 		if err := a.metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -164,4 +164,29 @@ func (a *App) Shutdown(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// PVZServer реализует gRPC сервер для PVZ
+type PVZServer struct {
+	pbv1.UnimplementedPVZServiceServer
+	pvzUseCase usecase.PVZUseCase
+}
+
+// GetPVZList реализует gRPC метод для получения списка ПВЗ
+func (s *PVZServer) GetPVZList(ctx context.Context, req *pbv1.GetPVZListRequest) (*pbv1.GetPVZListResponse, error) {
+	pvzs, err := s.pvzUseCase.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	response := &pbv1.GetPVZListResponse{}
+	for _, pvz := range pvzs {
+		response.Pvzs = append(response.Pvzs, &pbv1.PVZ{
+			Id:               pvz.ID.String(),
+			RegistrationDate: timestamppb.New(pvz.RegistrationDate),
+			City:             string(pvz.City),
+		})
+	}
+
+	return response, nil
 }
