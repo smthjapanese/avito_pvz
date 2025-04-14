@@ -151,3 +151,92 @@ func TestUserUseCase_DummyLogin(t *testing.T) {
 	assert.Equal(t, role, claims.Role)
 	assert.Contains(t, claims.Email, "dummy_")
 }
+
+func TestUserUseCase_ValidateToken(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUserRepo := mock.NewMockUserRepository(ctrl)
+	tokenManager := jwt.NewManager("test_secret", 24*time.Hour)
+	uc := NewUserUseCase(mockUserRepo, tokenManager)
+
+	t.Run("successful validation of regular token", func(t *testing.T) {
+		userID := uuid.New()
+		email := "test@example.com"
+		role := models.UserRole("client")
+
+		// Создаем токен
+		token, err := tokenManager.GenerateToken(userID, email, role)
+		require.NoError(t, err)
+
+		// Ожидаем, что репозиторий вернет пользователя
+		expectedUser := &models.User{
+			ID:    userID,
+			Email: email,
+			Role:  role,
+		}
+		mockUserRepo.EXPECT().GetByID(gomock.Any(), userID).Return(expectedUser, nil)
+
+		// Валидируем токен
+		user, err := uc.ValidateToken(context.Background(), token)
+		require.NoError(t, err)
+		assert.Equal(t, expectedUser, user)
+	})
+
+	t.Run("successful validation of dummy token", func(t *testing.T) {
+		userID := uuid.New()
+		email := "dummy_test@example.com"
+		role := models.UserRole("moderator")
+
+		// Создаем dummy токен
+		token, err := tokenManager.GenerateToken(userID, email, role)
+		require.NoError(t, err)
+
+		// Валидируем токен
+		user, err := uc.ValidateToken(context.Background(), token)
+		require.NoError(t, err)
+		assert.Equal(t, userID, user.ID)
+		assert.Equal(t, email, user.Email)
+		assert.Equal(t, role, user.Role)
+	})
+
+	t.Run("invalid token", func(t *testing.T) {
+		// Пробуем валидировать невалидный токен
+		user, err := uc.ValidateToken(context.Background(), "invalid_token")
+		assert.Nil(t, user)
+		assert.ErrorIs(t, err, errors.ErrUnauthorized)
+	})
+
+	t.Run("invalid UUID in token", func(t *testing.T) {
+		// Создаем токен с невалидным UUID
+		invalidUUID := uuid.New()
+		token, err := tokenManager.GenerateToken(invalidUUID, "test@example.com", models.UserRole("client"))
+		require.NoError(t, err)
+
+		// Ожидаем ошибку при получении пользователя
+		mockUserRepo.EXPECT().GetByID(gomock.Any(), invalidUUID).Return(nil, errors.ErrUserNotFound)
+
+		// Валидируем токен
+		user, err := uc.ValidateToken(context.Background(), token)
+		assert.Nil(t, user)
+		assert.ErrorIs(t, err, errors.ErrUnauthorized)
+	})
+
+	t.Run("error getting user from DB", func(t *testing.T) {
+		userID := uuid.New()
+		email := "test@example.com"
+		role := models.UserRole("client")
+
+		// Создаем токен
+		token, err := tokenManager.GenerateToken(userID, email, role)
+		require.NoError(t, err)
+
+		// Ожидаем ошибку при получении пользователя
+		mockUserRepo.EXPECT().GetByID(gomock.Any(), userID).Return(nil, errors.ErrUserNotFound)
+
+		// Валидируем токен
+		user, err := uc.ValidateToken(context.Background(), token)
+		assert.Nil(t, user)
+		assert.ErrorIs(t, err, errors.ErrUnauthorized)
+	})
+}

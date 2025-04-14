@@ -11,25 +11,25 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/smthjapanese/avito_pvz/internal/domain/models"
 	"github.com/smthjapanese/avito_pvz/internal/domain/usecase"
-	"github.com/smthjapanese/avito_pvz/internal/domain/usecase/mock"
+	mock_usecase "github.com/smthjapanese/avito_pvz/internal/domain/usecase/mock"
 	"github.com/smthjapanese/avito_pvz/internal/pkg/errors"
 	"github.com/smthjapanese/avito_pvz/internal/pkg/logger"
 	"github.com/smthjapanese/avito_pvz/internal/pkg/metrics"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 func TestPVZHandler_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockPVZUseCase := mock.NewMockPVZUseCase(ctrl)
+	mockPVZUseCase := mock_usecase.NewMockPVZUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
-	mockMetrics := metrics.NewMetrics()
+	mockMetrics := metrics.NewMockMetrics()
 	handler := NewPVZHandler(mockPVZUseCase, mockLogger, mockMetrics)
 
 	req := createPVZRequest{
@@ -67,9 +67,9 @@ func TestPVZHandler_Create_InvalidCity(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockPVZUseCase := mock.NewMockPVZUseCase(ctrl)
+	mockPVZUseCase := mock_usecase.NewMockPVZUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
-	mockMetrics := metrics.NewMetrics()
+	mockMetrics := metrics.NewMockMetrics() // Используем мок метрик
 	handler := NewPVZHandler(mockPVZUseCase, mockLogger, mockMetrics)
 
 	req := createPVZRequest{
@@ -96,7 +96,7 @@ func TestPVZHandler_List(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockPVZUseCase := mock.NewMockPVZUseCase(ctrl)
+	mockPVZUseCase := mock_usecase.NewMockPVZUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	mockMetrics := metrics.NewMockMetrics() // Используем мок метрик
 	handler := NewPVZHandler(mockPVZUseCase, mockLogger, mockMetrics)
@@ -191,9 +191,9 @@ func TestPVZHandler_List_InvalidDateFormat(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockPVZUseCase := mock.NewMockPVZUseCase(ctrl)
+	mockPVZUseCase := mock_usecase.NewMockPVZUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
-	mockMetrics := metrics.NewMetrics()
+	mockMetrics := metrics.NewMockMetrics() // Используем мок метрик
 	handler := NewPVZHandler(mockPVZUseCase, mockLogger, mockMetrics)
 
 	w := httptest.NewRecorder()

@@ -9,22 +9,22 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/smthjapanese/avito_pvz/internal/domain/models"
-	"github.com/smthjapanese/avito_pvz/internal/domain/usecase/mock"
+	mock_usecase "github.com/smthjapanese/avito_pvz/internal/domain/usecase/mock"
 	"github.com/smthjapanese/avito_pvz/internal/pkg/errors"
 	"github.com/smthjapanese/avito_pvz/internal/pkg/logger"
 	"github.com/smthjapanese/avito_pvz/internal/pkg/metrics"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 func TestProductHandler_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockProductUseCase := mock.NewMockProductUseCase(ctrl)
+	mockProductUseCase := mock_usecase.NewMockProductUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	mockMetrics := metrics.NewMockMetrics()
 	handler := NewProductHandler(mockProductUseCase, mockLogger, mockMetrics)
@@ -69,7 +69,7 @@ func TestProductHandler_Create_InvalidProductType(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockProductUseCase := mock.NewMockProductUseCase(ctrl)
+	mockProductUseCase := mock_usecase.NewMockProductUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	mockMetrics := metrics.NewMockMetrics()
 	handler := NewProductHandler(mockProductUseCase, mockLogger, mockMetrics)
@@ -99,7 +99,7 @@ func TestProductHandler_Create_InvalidProductType(t *testing.T) {
 func TestProductHandler_Create_NoOpenReception(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockProductUseCase := mock.NewMockProductUseCase(ctrl)
+	mockProductUseCase := mock_usecase.NewMockProductUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	mockMetrics := metrics.NewMockMetrics()
 	handler := NewProductHandler(mockProductUseCase, mockLogger, mockMetrics)
@@ -130,7 +130,7 @@ func TestProductHandler_DeleteLastFromReception(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockProductUseCase := mock.NewMockProductUseCase(ctrl)
+	mockProductUseCase := mock_usecase.NewMockProductUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	mockMetrics := metrics.NewMockMetrics()
 	handler := NewProductHandler(mockProductUseCase, mockLogger, mockMetrics)
@@ -158,7 +158,7 @@ func TestProductHandler_DeleteLastFromReception_InvalidID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockProductUseCase := mock.NewMockProductUseCase(ctrl)
+	mockProductUseCase := mock_usecase.NewMockProductUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	mockMetrics := metrics.NewMockMetrics()
 	handler := NewProductHandler(mockProductUseCase, mockLogger, mockMetrics)
@@ -182,7 +182,7 @@ func TestProductHandler_DeleteLastFromReception_NoProductsToDelete(t *testing.T)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockProductUseCase := mock.NewMockProductUseCase(ctrl)
+	mockProductUseCase := mock_usecase.NewMockProductUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	mockMetrics := metrics.NewMockMetrics()
 	handler := NewProductHandler(mockProductUseCase, mockLogger, mockMetrics)
@@ -209,7 +209,7 @@ func TestProductHandler_DeleteLastFromReception_NoProductsToDelete(t *testing.T)
 func TestProductHandler_DeleteLastFromReception_NoOpenReception(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockProductUseCase := mock.NewMockProductUseCase(ctrl)
+	mockProductUseCase := mock_usecase.NewMockProductUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	mockMetrics := metrics.NewMockMetrics()
 	handler := NewProductHandler(mockProductUseCase, mockLogger, mockMetrics)
@@ -238,7 +238,7 @@ func TestProductHandler_DeleteLastFromReception_PVZNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockProductUseCase := mock.NewMockProductUseCase(ctrl)
+	mockProductUseCase := mock_usecase.NewMockProductUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	mockMetrics := metrics.NewMockMetrics()
 	handler := NewProductHandler(mockProductUseCase, mockLogger, mockMetrics)
@@ -266,7 +266,7 @@ func TestProductHandler_Create_PVZNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockProductUseCase := mock.NewMockProductUseCase(ctrl)
+	mockProductUseCase := mock_usecase.NewMockProductUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	mockMetrics := metrics.NewMockMetrics()
 	handler := NewProductHandler(mockProductUseCase, mockLogger, mockMetrics)
@@ -297,7 +297,7 @@ func TestProductHandler_Create_ValidationError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockProductUseCase := mock.NewMockProductUseCase(ctrl)
+	mockProductUseCase := mock_usecase.NewMockProductUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	mockMetrics := metrics.NewMockMetrics()
 	handler := NewProductHandler(mockProductUseCase, mockLogger, mockMetrics)
@@ -321,7 +321,7 @@ func TestProductHandler_Create_InternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockProductUseCase := mock.NewMockProductUseCase(ctrl)
+	mockProductUseCase := mock_usecase.NewMockProductUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	mockMetrics := metrics.NewMockMetrics()
 	handler := NewProductHandler(mockProductUseCase, mockLogger, mockMetrics)
@@ -352,7 +352,7 @@ func TestProductHandler_DeleteLastFromReception_InternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockProductUseCase := mock.NewMockProductUseCase(ctrl)
+	mockProductUseCase := mock_usecase.NewMockProductUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	mockMetrics := metrics.NewMockMetrics()
 	handler := NewProductHandler(mockProductUseCase, mockLogger, mockMetrics)

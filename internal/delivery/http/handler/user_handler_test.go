@@ -8,22 +8,21 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/smthjapanese/avito_pvz/internal/domain/models"
-	"github.com/smthjapanese/avito_pvz/internal/domain/usecase/mock"
+	mock_usecase "github.com/smthjapanese/avito_pvz/internal/domain/usecase/mock"
 	"github.com/smthjapanese/avito_pvz/internal/pkg/errors"
 	"github.com/smthjapanese/avito_pvz/internal/pkg/logger"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 func TestUserHandler_Register(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUserUseCase := mock.NewMockUserUseCase(ctrl)
+	mockUserUseCase := mock_usecase.NewMockUserUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	handler := NewUserHandler(mockUserUseCase, mockLogger)
 
@@ -63,7 +62,7 @@ func TestUserHandler_Login(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUserUseCase := mock.NewMockUserUseCase(ctrl)
+	mockUserUseCase := mock_usecase.NewMockUserUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	handler := NewUserHandler(mockUserUseCase, mockLogger)
 
@@ -93,7 +92,7 @@ func TestUserHandler_DummyLogin(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUserUseCase := mock.NewMockUserUseCase(ctrl)
+	mockUserUseCase := mock_usecase.NewMockUserUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	handler := NewUserHandler(mockUserUseCase, mockLogger)
 
@@ -122,7 +121,7 @@ func TestUserHandler_Register_ValidationError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUserUseCase := mock.NewMockUserUseCase(ctrl)
+	mockUserUseCase := mock_usecase.NewMockUserUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	handler := NewUserHandler(mockUserUseCase, mockLogger)
 
@@ -150,7 +149,7 @@ func TestUserHandler_Register_UserAlreadyExists(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUserUseCase := mock.NewMockUserUseCase(ctrl)
+	mockUserUseCase := mock_usecase.NewMockUserUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	handler := NewUserHandler(mockUserUseCase, mockLogger)
 
@@ -180,7 +179,7 @@ func TestUserHandler_Login_InvalidCredentials(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUserUseCase := mock.NewMockUserUseCase(ctrl)
+	mockUserUseCase := mock_usecase.NewMockUserUseCase(ctrl)
 	mockLogger, _ := logger.NewLogger("debug")
 	handler := NewUserHandler(mockUserUseCase, mockLogger)
 
