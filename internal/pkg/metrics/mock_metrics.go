@@ -15,3 +15,7 @@ func (m *MockMetrics) IncProductAdded() {}
 func (m *MockMetrics) ObserveRequestDuration(method, endpoint string, duration float64) {}
 
 func (m *MockMetrics) IncRequestCount(method, endpoint, status string) {}
+
+func (m *MockMetrics) ObserveGRPCRequestDuration(method string, duration float64) {}
+
+func (m *MockMetrics) IncGRPCRequestCount(method, status string) {}

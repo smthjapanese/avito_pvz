@@ -10,11 +10,16 @@ type MetricsInterface interface {
 	IncProductAdded()
 	ObserveRequestDuration(method, endpoint string, duration float64)
 	IncRequestCount(method, endpoint, status string)
+	ObserveGRPCRequestDuration(method string, duration float64)
+	IncGRPCRequestCount(method, status string)
 }
 
 type Metrics struct {
 	RequestCount    *prometheus.CounterVec
 	RequestDuration *prometheus.HistogramVec
+
+	GRPCRequestCount    *prometheus.CounterVec
+	GRPCRequestDuration *prometheus.HistogramVec
 
 	PVZCreated       prometheus.Counter
 	ReceptionCreated prometheus.Counter
@@ -22,7 +27,7 @@ type Metrics struct {
 }
 
 func NewMetrics() *Metrics {
-	return &Metrics{
+	metrics := &Metrics{
 		RequestCount: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "http_requests_total",
@@ -37,6 +42,21 @@ func NewMetrics() *Metrics {
 				Buckets: []float64{0.01, 0.05, 0.1, 0.5, 1, 2, 5},
 			},
 			[]string{"method", "endpoint"},
+		),
+		GRPCRequestCount: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: "grpc_requests_total",
+				Help: "Total number of gRPC requests",
+			},
+			[]string{"method", "status"},
+		),
+		GRPCRequestDuration: prometheus.NewHistogramVec(
+			prometheus.HistogramOpts{
+				Name:    "grpc_request_duration_seconds",
+				Help:    "Duration of gRPC requests in seconds",
+				Buckets: []float64{0.01, 0.05, 0.1, 0.5, 1, 2, 5},
+			},
+			[]string{"method"},
 		),
 		PVZCreated: prometheus.NewCounter(
 			prometheus.CounterOpts{
@@ -57,6 +77,19 @@ func NewMetrics() *Metrics {
 			},
 		),
 	}
+
+	// Регистрация метрик
+	prometheus.MustRegister(
+		metrics.RequestCount,
+		metrics.RequestDuration,
+		metrics.GRPCRequestCount,
+		metrics.GRPCRequestDuration,
+		metrics.PVZCreated,
+		metrics.ReceptionCreated,
+		metrics.ProductAdded,
+	)
+
+	return metrics
 }
 
 func (m *Metrics) IncPVZCreated() {
@@ -77,4 +110,12 @@ func (m *Metrics) ObserveRequestDuration(method, endpoint string, duration float
 
 func (m *Metrics) IncRequestCount(method, endpoint, status string) {
 	m.RequestCount.WithLabelValues(method, endpoint, status).Inc()
+}
+
+func (m *Metrics) ObserveGRPCRequestDuration(method string, duration float64) {
+	m.GRPCRequestDuration.WithLabelValues(method).Observe(duration)
+}
+
+func (m *Metrics) IncGRPCRequestCount(method, status string) {
+	m.GRPCRequestCount.WithLabelValues(method, status).Inc()
 }
